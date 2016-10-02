@@ -17,11 +17,14 @@ def headers(soup):
   header3 = soup.find('h3')
   if header3:
     header3 = header3.get_text()
-  header4 = soup.find_all('h4')
+  header4 = soup.find('h4')
   if header4:
-    header4 = str(header4[1])
-    match = re.search('<h4>([\w\s\(\)-,]+)<div', header4)
-    header4 = match.group(1)
+    header4 = header4.get_text()
+  #header4 = soup.find_all('h4')
+  #if header4[1]:
+    #header4 = str(header4[1])
+    #match = re.search('<h4>([\w\s\(\)-,]+)<div', header4)
+    #header4 = match.group(1)
   if header3 and header4:
     header = header3 + '\n' + header4
   elif header3 and not header4:
@@ -67,7 +70,13 @@ def user(soup):
 
 
 def download_images(img_urls, foldername):
-  pass
+  path = os.path.abspath(foldername)
+  for img in img_urls:
+    match = re.findall('/([\.\w-]+)', img)[-1]
+    print(match)
+    filename = os.path.join(path, match)
+    urllib.request.urlretrieve(img, '{!s}'.format(filename))
+
 
 
 
@@ -86,26 +95,25 @@ def create_dir_txt(username, rating, header, tagnames):
 def get_otherinfo(first_list):
   # ratings and uploader names
   print(len(first_list))
-  astring = first_list[1]
-  soup = bs4.BeautifulSoup(astring, 'html.parser')
+  for l in first_list:
+    soup = bs4.BeautifulSoup(l, 'html.parser')
 
-  header = headers(soup)
-  username = user(soup)
-  rating = rate(soup)
-  tagnames = tags(soup)
-  img_urls = imgs(soup)
+    header = headers(soup)
+    username = user(soup)
+    rating = rate(soup)
+    tagnames = tags(soup)
+    img_urls = imgs(soup)
 
-  print(username)
-  print(rating)
-  print(tagnames)
-  # print(img_urls)
-  print(header)
+    print(username)
+    print(rating)
+    print(tagnames)
+    # print(img_urls)
+    print(header)
 
-  # create folders and txt files
-  foldername = create_dir_txt(username, rating, header, tagnames)
+    # create folders and txt files
+    foldername = create_dir_txt(username, rating, header, tagnames)
   
-
-  download_images(img_urls, foldername)
+    download_images(img_urls, foldername)
 
 
 
