@@ -65,7 +65,7 @@ def rate(soup):
 
 def user(soup):
   user_el = str(soup.find("a", {"class" : "offline_username"}))
-  username = re.search('">([\w]+)</a>', user_el).group(1)
+  username = re.search('">([-\s\w\.]+)</a>', user_el).group(1)
   return username
 
 
@@ -90,9 +90,18 @@ def create_dir_txt(username, rating, header, tagnames):
   txt.close()
   return foldername
 
+def next_page(data):
+  soup = bs4.BeautifulSoup(data, 'html.parser')
+  next_link = str(soup.find("a", {"class" : "next"}))
+  match = re.search('href="([%/\w]+)">', next_link)
+  next_link = 'http://thatpervert.com' + match.group(1)
+  print('next link: ', next_link)
+  return next_link
+  
 
 
-def get_otherinfo(first_list):
+
+def get_otherinfo(first_list, next_link):
   # ratings and uploader names
   print(len(first_list))
   for l in first_list:
@@ -114,19 +123,23 @@ def get_otherinfo(first_list):
     foldername = create_dir_txt(username, rating, header, tagnames)
   
     download_images(img_urls, foldername)
-
+  r = requests.get(next_link)
+  data = r.text
+  parse_data(data)
 
 
 def parse_data(data):
   first_list = data.split('class="post_top"')[1:]
   first_list[-1] = str(first_list[-1].split('id="Pagination"')[:1])
-  get_otherinfo(first_list)
+  next_link = next_page(data)
+  print(next_link)
+  get_otherinfo(first_list, next_link)
 
 
 
 
 def main():
-  r = requests.get('http://thatpervert.com/tag/porn%2Bcomics')
+  r = requests.get('http://thatpervert.com/tag/porn%2Bcomics/') # /94
   print('got the contents')
   data = r.text
   print(type(data))
